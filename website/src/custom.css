@@ -4190,3 +4190,35 @@ html[data-theme="dark"] .markdown .luma-onboarding {
   margin: 0.5rem 0 0;
   overflow: auto;
 }
+
+/* Card-based examples catalog. */
+.luma-example-catalog-hero {
+  width: min(100% - 44px, 1320px);
+  margin: 0 auto;
+  padding: 62px 0 40px;
+}
+
+.luma-example-catalog-eyebrow {
+  margin: 0 0 14px;
+  color: #138a7b;
+  font-size: 0.72rem;
+  font-weight: 780;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.luma-example-catalog-title {
+  margin: 0;
+  color: var(--ifm-font-color-base);
+  font-size: clamp(3rem, 7vw, 6.5rem);
+  letter-spacing: -0.065em;
+  line-height: 0.95;
+}
+
+.luma-example-catalog-description {
+  max-width: 650px;
+  margin: 24px 0 0;
+  color: var(--ifm-color-emphasis-700);
+  font-size: 1.15rem;
+  line-height: 1.6;
+}

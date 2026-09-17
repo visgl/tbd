@@ -1,0 +1,21 @@
+---
+title: Examples
+description: Explore GPU-native rendering, compute, data processing, and visualization across the web.
+hide_title: true
+---
+
+import {ExamplesIndex} from '@site/src/components/examples-index';
+import {getExampleThumbnailPath} from '@site/src/example-thumbnails';
+
+<header className="luma-example-catalog-hero" aria-labelledby="example-catalog-title">
+  <p className="luma-example-catalog-eyebrow">tbd · GPU compute</p>
+  <h1 className="luma-example-catalog-title" id="example-catalog-title">Examples</h1>
+  <p className="luma-example-catalog-description">Explore interactive examples for command graphs, streaming data, rendering, and GPU-native analysis.</p>
+</header>
+
+<ExamplesIndex
+  getThumbnail={item => {
+    const exampleName = typeof item === 'string' ? item : item.docId || item.label.toLowerCase();
+    return `/images/examples/${getExampleThumbnailPath(exampleName)}`;
+  }}
+/>
