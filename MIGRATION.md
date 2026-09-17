@@ -35,4 +35,4 @@ There are no paths or symlinks back to another checkout. The repository installs
 
 ## Publishing and deployment
 
-All workspace packages are private. No package publishing or automatic website deployment is configured. CI builds and uploads the website as an artifact; choosing a final domain and enabling hosting is a separate step.
+All workspace packages are private; npm publishing remains disabled. After build and GPU checks pass on `master`, CI publishes the website to [GitHub Pages](https://visgl.github.io/tbd/). Pull requests produce a downloadable website artifact without deploying. The same checks and deployment can be triggered manually with the CI workflow. A custom domain can be configured later.

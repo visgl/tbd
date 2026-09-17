@@ -13,6 +13,10 @@ GPU command graphs, chunked data, and compute modules for the web. Part of [vis.
 
 This is an initial extraction from luma.gl. Device, shader, and rendering packages remain in the workspace to keep the complete example and integration dependency graph buildable. See [migration boundaries](MIGRATION.md) and [source provenance](UPSTREAM.md).
 
+## Website and CI
+
+[Documentation and examples](https://visgl.github.io/tbd/) are published to GitHub Pages after all CI checks pass on `master`. Pull requests run checks and produce a website artifact without deploying. The CI workflow also supports manual runs. Package publishing remains disabled.
+
 ## Development
 
 Requires Node 22 (see `.nvmrc`) and Yarn 4 through Corepack.
