@@ -1,0 +1,48 @@
+{
+  "name": "@luma.gl/webgpu",
+  "version": "9.4.0-alpha.4",
+  "description": "WebGPU adapter for the luma.gl core API",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/visgl/tbd",
+    "directory": "modules/webgpu"
+  },
+  "keywords": [
+    "webgpu",
+    "visualization",
+    "animation",
+    "3d"
+  ],
+  "types": "dist/index.d.ts",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "src",
+    "dist",
+    "dist.min.js",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build-minified-bundle": "ocular-bundle ./bundle.ts --output=dist/dist.min.js",
+    "build-dev-bundle": "ocular-bundle ./bundle.ts --output=dist/dist.dev.js --env=dev"
+  },
+  "peerDependencies": {
+    "@luma.gl/core": "~9.4.0-alpha.1",
+    "@luma.gl/shadertools": "~9.4.0-alpha.1"
+  },
+  "dependencies": {
+    "@probe.gl/env": "^4.1.1",
+    "@webgpu/types": "^0.1.69"
+  },
+  "private": true
+}

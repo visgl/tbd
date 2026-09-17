@@ -1,0 +1,123 @@
+// luma.gl
+// SPDX-License-Identifier: MIT
+// SPDX-FileCopyrightText: Copyright (c) vis.gl contributors
+
+import {expect, it} from 'vitest';
+import {Geometry, GeometryProps} from '@luma.gl/engine';
+import {TypedArray} from '@math.gl/types';
+
+const TEST_CASES: {title: string; props: GeometryProps; [key: string]: any}[] = [
+  {
+    title: 'simple positions',
+    props: {
+      topology: 'triangle-list',
+      attributes: {
+        positions: new Float32Array([0, 0, 0, 1, 0, 0, 1, 1, 0])
+      }
+    },
+    topology: 'triangle-list',
+    vertexCount: 3,
+    bufferLayout: [{name: 'positions', format: 'float32x3'}]
+  },
+  {
+    title: 'invalid positions',
+    props: {
+      topology: 'triangle-list',
+      attributes: {
+        positions: [0, 0, 0, 1, 0, 0, 1, 1, 0] as unknown as TypedArray
+      }
+    },
+    shouldThrow: true
+  },
+  {
+    title: 'with indices',
+    props: {
+      topology: 'triangle-list',
+      attributes: {
+        indices: new Uint16Array([0, 1, 2]),
+        positions: new Float32Array([0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0])
+      }
+    },
+    topology: 'triangle-list',
+    vertexCount: 3,
+    bufferLayout: [{name: 'positions', format: 'float32x3'}]
+  },
+  {
+    title: 'with too many indices',
+    props: {
+      topology: 'triangle-list',
+      indices: new Uint16Array([0, 1, 2, 3]),
+      attributes: {
+        indices: new Uint16Array([0, 1, 2]),
+        positions: new Float32Array([0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0])
+      }
+    },
+    shouldThrow: true
+  },
+  {
+    title: 'attribute descriptors',
+    props: {
+      topology: 'triangle-strip',
+      indices: {value: new Uint16Array([0, 1, 2, 3]), isIndexed: true},
+      attributes: {
+        positions: {value: new Float32Array([0, 0, 1, 0, 1, 1, 1, 0]), size: 2}
+      },
+      vertexCount: 3
+    },
+    topology: 'triangle-strip',
+    vertexCount: 3,
+    bufferLayout: [{name: 'positions', format: 'float32x2'}]
+  }
+];
+
+it('Geometry#constructor', () => {
+  for (const testCase of TEST_CASES) {
+    if (testCase.shouldThrow) {
+      expect(() => new Geometry(testCase.props), `${testCase.title}: should throw`).toThrow();
+    } else {
+      const geometry = new Geometry(testCase.props);
+
+      expect(geometry.topology, `${testCase.title}: topology is correct`).toBe(testCase.topology);
+      expect(geometry.getVertexCount(), `${testCase.title}: vertexCount is correct`).toBe(
+        testCase.vertexCount
+      );
+      expect(geometry.bufferLayout, `${testCase.title}: bufferLayout is correct`).toEqual(
+        testCase.bufferLayout
+      );
+    }
+  }
+});
+
+it('Geometry#constructor preserves source attribute and explicit layout names', () => {
+  const geometry = new Geometry({
+    topology: 'triangle-list',
+    attributes: {
+      POSITION: {value: new Float32Array([0, 0, 0]), size: 3}
+    },
+    bufferLayout: [{name: 'POSITION', format: 'float32x3'}]
+  });
+
+  expect(geometry.attributes.POSITION, 'semantic attribute name is preserved').toBeTruthy();
+  expect(geometry.attributes.positions, 'semantic attribute has no shader-name alias').toBeFalsy();
+  expect(geometry.bufferLayout).toEqual([{name: 'POSITION', format: 'float32x3'}]);
+
+  const positions = {value: new Float32Array([1, 1, 1]), size: 3};
+  const geometryWithShaderNameOverride = new Geometry({
+    topology: 'triangle-list',
+    attributes: {
+      POSITION: {value: new Float32Array([0, 0, 0]), size: 3},
+      positions
+    }
+  });
+
+  expect(
+    geometryWithShaderNameOverride.attributes.POSITION,
+    'shader-name override replaces semantic'
+  ).toBeFalsy();
+  expect(geometryWithShaderNameOverride.attributes.positions, 'shader-name override wins').toBe(
+    positions
+  );
+  expect(geometryWithShaderNameOverride.bufferLayout).toEqual([
+    {name: 'positions', format: 'float32x3'}
+  ]);
+});

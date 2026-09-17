@@ -1,0 +1,53 @@
+// luma.gl
+// SPDX-License-Identifier: MIT
+// SPDX-FileCopyrightText: Copyright (c) vis.gl contributors
+
+// utils
+import './utils/deep-equal.spec';
+import './utils/split-uniforms-and-bindings.spec';
+import './utils/buffer-layout-order.spec';
+
+// model etc
+import './lib/model.spec';
+import './lib/animation-loop.spec';
+import './lib/picking-manager.spec';
+import './lib/picking-modules.node.spec';
+
+import './dynamic-texture/dynamic-texture.spec';
+import './dynamic-texture/mip-levels.spec';
+import './dynamic-texture/texture-data.spec';
+
+import './geometry/geometries.spec';
+import './geometry/geometry.spec';
+import './geometry/geometry-utils.spec';
+
+import './geometry/gpu-geometry.spec';
+
+import './animation/timeline.spec';
+import './animation/key-frames.spec';
+import './animation/animator.spec';
+import './animation/animation-mixer.spec';
+import './animation/morph-targets.spec';
+
+// Camera controls
+import './controls/orbit-controls.spec';
+
+// Scenegraph
+import './scenegraph/group-node.spec';
+import './scenegraph/scenegraph-node.spec';
+import './scenegraph/model-node.spec';
+
+// debug
+import './debug/get-debug-table-from-shader-layout.spec';
+
+// Experimental
+import './shader-inputs.spec';
+import './shader-inputs-types.spec';
+import './compute/swap.spec';
+import './compute/buffer-transform.spec';
+import './compute/texture-transform.spec';
+import './compute/computation.spec';
+import './compute/kernel.spec';
+import './passes/shader-pass-renderer.spec';
+import './models/background-texture-model.spec';
+import './models/light-models.spec';

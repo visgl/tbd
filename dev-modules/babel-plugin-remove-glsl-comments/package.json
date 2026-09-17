@@ -1,0 +1,20 @@
+{
+  "name": "babel-plugin-remove-glsl-comments",
+  "version": "1.0.0",
+  "description": "Babel plugin for removing glsl comments",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/visgl/luma.gl"
+  },
+  "keywords": [
+    "babel-plugin",
+    "webgl",
+    "glsl"
+  ],
+  "main": "index.js",
+  "dependencies": {
+    "minimatch": "^3.0.0"
+  },
+  "private": true
+}

@@ -1,0 +1,11 @@
+// luma.gl
+// SPDX-License-Identifier: MIT
+// SPDX-FileCopyrightText: Copyright (c) vis.gl contributors
+
+import './webgpu/adapter/webgpu-adapter.spec';
+import './adapter/helpers/get-vertex-buffer-layout.spec';
+import './adapter/resources/webgpu-render-pass.spec';
+import './adapter/resources/webgpu-vertex-array.spec';
+
+// WGSL parsing
+import './wgsl/get-shader-layout-wgsl.spec';

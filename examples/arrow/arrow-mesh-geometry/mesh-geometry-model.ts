@@ -1,0 +1,133 @@
+// luma.gl
+// SPDX-License-Identifier: MIT
+// SPDX-FileCopyrightText: Copyright (c) vis.gl contributors
+
+import {
+  getArrowPickingModule,
+  supportsArrowIndexPicking,
+  type ArrowTableGeometry
+} from '@luma.gl/arrow';
+import type {Device} from '@luma.gl/core';
+import {indexPicking, ShaderInputs} from '@luma.gl/engine';
+import {getGPUVectorBuffer, type GPUVector} from '@luma.gl/gpgpu/gpu-data';
+import {GPUTableModel, type GPUInputSchema, type GPUTable} from '@luma.gl/experimental/gpu-tables';
+import type {ShaderModule} from '@luma.gl/shadertools';
+import {
+  FS_GLSL,
+  PICKING_FS_GLSL,
+  VS_GLSL,
+  WEBGL_MESH_SHADER_LAYOUT,
+  WEBGPU_MESH_SHADER_LAYOUT,
+  WGSL_SHADER,
+  app
+} from './mesh-geometry-model-shaders';
+import {supportsVertexStorageBuffers} from '../utils/device-limits';
+
+export const MESH_GEOMETRY_MATRIX_ARROW_PATHS = {
+  matrixColumn0: 'matrix',
+  matrixColumn1: 'matrix',
+  matrixColumn2: 'matrix',
+  matrixColumn3: 'matrix'
+};
+export const MESH_GEOMETRY_GPU_INPUT_SCHEMA = [
+  {
+    columnName: 'matrix',
+    attributeNames: ['matrixColumn0', 'matrixColumn1', 'matrixColumn2', 'matrixColumn3'],
+    storageBindingName: 'matrix',
+    kind: 'matrices',
+    required: true,
+    formats: ['float32x4']
+  }
+] as const satisfies GPUInputSchema;
+const MESH_VERTEX_STORAGE_BUFFER_COUNT = 2;
+
+export type MeshGeometryShaderInputs = ShaderInputs<{
+  app: typeof app.props;
+  picking: typeof indexPicking.props;
+}>;
+
+export type MeshGeometryModelProps = {
+  id: string;
+  geometry: ArrowTableGeometry;
+  table: GPUTable;
+  shaderInputs: MeshGeometryShaderInputs;
+  faceColors?: GPUVector<'float32x4'>;
+  parameters?: Record<string, unknown>;
+};
+
+export function createMeshGeometryShaderInputs(device: Device): MeshGeometryShaderInputs {
+  const shaderInputs: MeshGeometryShaderInputs = new ShaderInputs<{
+    app: typeof app.props;
+    picking: typeof indexPicking.props;
+  }>({app, picking: getArrowPickingModule(device)});
+  shaderInputs.setProps({picking: {indexMode: 'attribute', batchIndex: 0}});
+  return shaderInputs;
+}
+
+export function getMeshGeometryShaderLayout(device: Device) {
+  return supportsMeshGeometryStorageRendering(device)
+    ? WEBGPU_MESH_SHADER_LAYOUT
+    : WEBGL_MESH_SHADER_LAYOUT;
+}
+
+export function supportsMeshGeometryStorageRendering(device: Device): boolean {
+  return supportsVertexStorageBuffers(device, MESH_VERTEX_STORAGE_BUFFER_COUNT);
+}
+
+export function createMeshGeometryModel(
+  device: Device,
+  {id, geometry, table, shaderInputs, faceColors, parameters}: MeshGeometryModelProps
+): GPUTableModel {
+  const supportsStorageRendering = supportsMeshGeometryStorageRendering(device);
+  return new GPUTableModel(device, {
+    id,
+    geometry,
+    table,
+    gpuInputSchema: MESH_GEOMETRY_GPU_INPUT_SCHEMA,
+    tableCount: 'instance',
+    source: WGSL_SHADER,
+    vs: VS_GLSL,
+    fs: FS_GLSL,
+    shaderLayout: getMeshGeometryShaderLayout(device),
+    defines: {LUMA_SUPPORTS_VERTEX_STORAGE_BUFFERS: supportsStorageRendering},
+    shaderInputs,
+    modules: [getArrowPickingModule(device)] as ShaderModule[],
+    ...(faceColors ? {bindings: {faceColors: getGPUVectorBuffer(faceColors)}} : {}),
+    parameters: parameters ?? DEFAULT_RENDER_PARAMETERS
+  });
+}
+
+export function createMeshGeometryPickingModel(
+  device: Device,
+  {id, geometry, table, shaderInputs, faceColors, parameters}: MeshGeometryModelProps
+): GPUTableModel | null {
+  if (!supportsArrowIndexPicking(device)) {
+    return null;
+  }
+
+  const supportsStorageRendering = supportsMeshGeometryStorageRendering(device);
+  return new GPUTableModel(device, {
+    id,
+    geometry,
+    table,
+    gpuInputSchema: MESH_GEOMETRY_GPU_INPUT_SCHEMA,
+    tableCount: 'instance',
+    source: WGSL_SHADER,
+    vs: VS_GLSL,
+    fs: PICKING_FS_GLSL,
+    fragmentEntryPoint: 'fragmentPicking',
+    modules: [indexPicking] as ShaderModule[],
+    shaderLayout: getMeshGeometryShaderLayout(device),
+    defines: {LUMA_SUPPORTS_VERTEX_STORAGE_BUFFERS: supportsStorageRendering},
+    ...(faceColors ? {bindings: {faceColors: getGPUVectorBuffer(faceColors)}} : {}),
+    shaderInputs,
+    colorAttachmentFormats: ['rgba8unorm', 'rg32sint'],
+    depthStencilAttachmentFormat: 'depth24plus',
+    parameters: parameters ?? DEFAULT_RENDER_PARAMETERS
+  });
+}
+
+const DEFAULT_RENDER_PARAMETERS = {
+  depthWriteEnabled: true,
+  depthCompare: 'less-equal'
+} as const satisfies Record<string, unknown>;

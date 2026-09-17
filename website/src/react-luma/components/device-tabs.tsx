@@ -1,0 +1,174 @@
+import React, {CSSProperties, useCallback, useEffect, useMemo, useState} from 'react';
+import BrowserOnly from '@docusaurus/BrowserOnly';
+
+import {Tabs, Tab} from './tabs';
+import {canCreateDeviceType, type DeviceType, useStore} from '../store/device-store';
+import {applyExampleTheme, type ExampleThemeAppearance} from '../../../../examples/example-theme';
+
+export type DeviceTabSelection =
+  | 'webgl2'
+  | 'webgpu'
+  | 'webgpu-core'
+  | 'webgpu-max'
+  | 'webgpu-compatibility';
+
+interface DeviceTabsProps {
+  appearance?: ExampleThemeAppearance;
+  devices?: DeviceTabSelection[];
+  style?: CSSProperties;
+}
+
+const DEFAULT_DEVICE_TYPES: DeviceType[] = [
+  'webgpu-max',
+  'webgpu-core',
+  'webgpu-compatibility',
+  'webgl'
+];
+
+const WEBGPU_DEVICE_TYPES: DeviceType[] = ['webgpu-max', 'webgpu-core', 'webgpu-compatibility'];
+
+const DEVICE_TAB_LABELS: Record<DeviceType, string> = {
+  'webgpu-core': 'WebGPU',
+  'webgpu-max': 'WebGPU',
+  'webgpu-compatibility': 'WebGPU',
+  webgl: 'WebGL2'
+};
+
+const DEVICE_TAB_BADGES: Partial<Record<DeviceType, string>> = {
+  'webgpu-core': 'CORE',
+  'webgpu-max': 'MAX',
+  'webgpu-compatibility': 'COMPAT'
+};
+
+export const DeviceTabsPriv = (props: DeviceTabsProps = {}) => {
+  const appearance = props.appearance ?? 'cinematic';
+  const devices = getDeviceTypes(props.devices);
+  const deviceAvailabilityKey = devices.join('|');
+  const [deviceAvailability, setDeviceAvailability] = useState<
+    Partial<Record<DeviceType, boolean>>
+  >({});
+  const deviceType = useStore(state => state.deviceType);
+  const deviceError = useStore(state => state.deviceError);
+  const setDeviceType = useStore(state => state.setDeviceType);
+  const selectedDeviceType = useMemo(
+    () => (deviceType && devices.includes(deviceType) ? deviceType : undefined),
+    [deviceType, deviceAvailabilityKey]
+  );
+  const setDeviceTabsElement = useCallback(
+    (element: HTMLDivElement | null) => {
+      if (element) {
+        applyExampleTheme(element, appearance);
+      }
+    },
+    [appearance]
+  );
+
+  useEffect(() => {
+    let isCancelled = false;
+    setDeviceAvailability({});
+
+    for (const type of devices) {
+      void canCreateDeviceType(type).then(isAvailable => {
+        if (!isCancelled) {
+          setDeviceAvailability(previousAvailability => ({
+            ...previousAvailability,
+            [type]: isAvailable
+          }));
+        }
+      });
+    }
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [deviceAvailabilityKey]);
+
+  const selectDeviceType = async (nextDeviceType: DeviceType): Promise<void> => {
+    if (deviceAvailability[nextDeviceType] === false) {
+      return;
+    }
+    await setDeviceType(nextDeviceType);
+  };
+
+  return (
+    <div
+      ref={setDeviceTabsElement}
+      data-luma-device-selector=""
+      data-luma-example-appearance={appearance}
+      style={props.style}
+    >
+      <div data-luma-device-tabs="">
+        <Tabs
+          label="Graphics backend"
+          selectedItem={selectedDeviceType}
+          setSelectedItem={selectDeviceType}
+        >
+          {devices.map(type => (
+            <Tab
+              key={type}
+              title={DEVICE_TAB_LABELS[type]}
+              tag={type}
+              badge={DEVICE_TAB_BADGES[type]}
+              unavailableBadge={deviceAvailability[type] === false ? 'N/A' : undefined}
+              disabled={deviceAvailability[type] === false}
+            >
+              {type === deviceType ? deviceError : null}
+            </Tab>
+          ))}
+        </Tabs>
+      </div>
+      <label data-luma-device-menu="">
+        <span data-luma-device-menu-indicator="" aria-hidden="true" />
+        <select
+          aria-label="Graphics backend"
+          data-luma-device-select=""
+          value={selectedDeviceType ?? devices[0] ?? ''}
+          onChange={event => void selectDeviceType(event.currentTarget.value as DeviceType)}
+        >
+          {devices.map(type => (
+            <option
+              key={type}
+              value={type}
+              disabled={deviceAvailability[type] === false}
+            >
+              {getDeviceOptionLabel(type)}
+            </option>
+          ))}
+        </select>
+      </label>
+    </div>
+  );
+};
+
+export const DeviceTabs = (props?: DeviceTabsProps) => (
+  <BrowserOnly>{() => <DeviceTabsPriv {...props} />}</BrowserOnly>
+);
+
+function getDeviceTypes(devices?: DeviceTabsProps['devices']): DeviceType[] {
+  if (!devices) {
+    return DEFAULT_DEVICE_TYPES;
+  }
+
+  const deviceTypes: DeviceType[] = [];
+  for (const device of devices) {
+    const mappedTypes =
+      device === 'webgpu'
+        ? WEBGPU_DEVICE_TYPES
+        : device === 'webgl2'
+          ? (['webgl'] as const)
+          : ([device] as const);
+
+    for (const mappedType of mappedTypes) {
+      if (!deviceTypes.includes(mappedType)) {
+        deviceTypes.push(mappedType);
+      }
+    }
+  }
+
+  return deviceTypes;
+}
+
+function getDeviceOptionLabel(deviceType: DeviceType): string {
+  const badge = DEVICE_TAB_BADGES[deviceType];
+  return badge ? `${DEVICE_TAB_LABELS[deviceType]} ${badge}` : DEVICE_TAB_LABELS[deviceType];
+}

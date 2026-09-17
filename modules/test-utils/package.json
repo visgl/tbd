@@ -1,0 +1,48 @@
+{
+  "name": "@luma.gl/test-utils",
+  "version": "9.4.0-alpha.4",
+  "description": "Automated WebGL testing utilities with Puppeteer and image diffing",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/visgl/tbd",
+    "directory": "modules/test-utils"
+  },
+  "keywords": [
+    "webgpu",
+    "webgl",
+    "automation",
+    "test"
+  ],
+  "types": "dist/index.d.ts",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "src",
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "pre-build": "echo test utils has no bundle"
+  },
+  "peerDependencies": {
+    "@luma.gl/core": "~9.4.0-alpha.1",
+    "@luma.gl/engine": "~9.4.0-alpha.1",
+    "@luma.gl/shadertools": "~9.4.0-alpha.1",
+    "@luma.gl/webgl": "~9.4.0-alpha.1",
+    "@luma.gl/webgpu": "~9.4.0-alpha.1"
+  },
+  "dependencies": {
+    "@probe.gl/env": "^4.1.1",
+    "@probe.gl/stats": "^4.1.1"
+  },
+  "private": true
+}

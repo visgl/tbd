@@ -1,0 +1,253 @@
+// luma.gl
+// SPDX-License-Identifier: MIT
+// SPDX-FileCopyrightText: Copyright (c) vis.gl contributors
+
+import {expect, it} from 'vitest';
+import type {ShaderModule} from '@luma.gl/shadertools';
+import {getWebGLTestDevice} from '@luma.gl/test-utils';
+import {waterMaterial} from '../../../shadertools/src/modules/lighting/water-material/water-material';
+import {Buffer, Texture, type ShaderLayout} from '../../../core/src';
+import {DynamicBuffer, DynamicTexture, MaterialFactory, type TextureBindingSource} from '../../src';
+
+const defaultUniformMaterial: ShaderModule<{value: number}> = {
+  name: 'defaultUniformMaterial',
+  bindingLayout: [{name: 'defaultUniformMaterial', group: 3}],
+  uniformTypes: {
+    value: 'f32'
+  },
+  defaultUniforms: {
+    value: 2.5
+  },
+  getUniforms: props => props || {},
+  dependencies: []
+};
+
+const dynamicBufferMaterial: ShaderModule<Record<string, never>> = {
+  name: 'dynamicBufferMaterial',
+  bindingLayout: [{name: 'materialBuffer', group: 3}],
+  getUniforms: () => ({}),
+  dependencies: []
+};
+
+const dynamicTextureMaterial: ShaderModule<Record<string, never>> = {
+  name: 'dynamicTextureMaterial',
+  bindingLayout: [{name: 'materialTexture', group: 3}],
+  getUniforms: () => ({}),
+  dependencies: []
+};
+
+it('Material initializes uniform buffers with default module uniforms', async () => {
+  const webglDevice = await getWebGLTestDevice();
+  const materialFactory = new MaterialFactory<{defaultUniformMaterial: {value?: number}}, {}>(
+    webglDevice,
+    {
+      modules: [defaultUniformMaterial as ShaderModule]
+    }
+  );
+  const material = materialFactory.createMaterial();
+
+  const uniformBuffer = material.getBindings()[
+    'defaultUniformMaterialUniforms'
+  ] as unknown as Buffer;
+  const storedValue = new Float32Array(uniformBuffer.debugData, 0, 1)[0];
+
+  expect(storedValue, 'constructor writes module default uniforms into the managed buffer').toBe(
+    2.5
+  );
+
+  material.destroy();
+  void 0;
+});
+
+it('Material preserves prior waterMaterial uniforms across partial updates', async () => {
+  const webglDevice = await getWebGLTestDevice();
+  const materialFactory = new MaterialFactory<{waterMaterial: typeof waterMaterial.props}, {}>(
+    webglDevice,
+    {
+      modules: [waterMaterial as ShaderModule]
+    }
+  );
+  const material = materialFactory.createMaterial();
+
+  material.setProps({
+    waterMaterial: {
+      baseColor: [0, 64, 128],
+      fresnelPower: 6,
+      waveADirection: [0, 2]
+    }
+  });
+  const uniformsAfterFirstUpdate = material.shaderInputs.getUniformValues()['waterMaterial']!;
+  expect(
+    uniformsAfterFirstUpdate['baseColor'],
+    'first update normalizes and stores vector uniforms'
+  ).toEqual([0, 64 / 255, 128 / 255]);
+  const directMergedUniforms = waterMaterial.getUniforms!(
+    {
+      time: 3.5,
+      mapping: 'world'
+    },
+    uniformsAfterFirstUpdate
+  );
+  expect(
+    directMergedUniforms['baseColor'],
+    'waterMaterial.getUniforms preserves prior vector uniforms when previous uniforms are supplied'
+  ).toEqual([0, 64 / 255, 128 / 255]);
+
+  material.setProps({
+    waterMaterial: {
+      time: 3.5,
+      mapping: 'world'
+    }
+  });
+
+  const uniforms = material.shaderInputs.getUniformValues()['waterMaterial']!;
+  expect(
+    uniforms['baseColor'],
+    'partial updates preserve normalized sibling vector uniforms'
+  ).toEqual([0, 64 / 255, 128 / 255]);
+  expect(uniforms['fresnelPower'], 'partial updates preserve sibling scalar uniforms').toBe(6);
+  expect(uniforms['waveADirection'], 'partial updates preserve normalized directions').toEqual([
+    0, 1
+  ]);
+  expect(uniforms['time'], 'new scalar uniform is applied').toBe(3.5);
+  expect(uniforms['mappingMode'], 'mapping prop resolves to world-space mode').toBe(1);
+
+  material.destroy();
+  void 0;
+});
+
+it('Material invalidates bind-group cache keys when DynamicBuffer generation changes', async () => {
+  const webglDevice = await getWebGLTestDevice();
+  const materialFactory = new MaterialFactory<{}, {materialBuffer: DynamicBuffer}>(webglDevice, {
+    modules: [dynamicBufferMaterial as ShaderModule]
+  });
+  const dynamicBuffer = new DynamicBuffer(webglDevice, {
+    byteLength: 16,
+    usage: Buffer.UNIFORM | Buffer.COPY_DST | Buffer.COPY_SRC
+  });
+  const material = materialFactory.createMaterial({
+    bindings: {
+      materialBuffer: dynamicBuffer
+    }
+  });
+
+  material.getBindings();
+  const initialCacheKey = material.getBindGroupCacheKey(3);
+
+  dynamicBuffer.resize({byteLength: 32});
+  material.getBindings();
+  const resizedCacheKey = material.getBindGroupCacheKey(3);
+
+  expect(
+    Boolean(initialCacheKey !== resizedCacheKey),
+    'resizing DynamicBuffer invalidates cache token'
+  ).toBe(true);
+  expect(
+    material.getBindings()['materialBuffer'],
+    'resolved bindings use the current DynamicBuffer backing buffer'
+  ).toBe(dynamicBuffer.buffer);
+
+  material.destroy();
+  dynamicBuffer.destroy();
+  void 0;
+});
+
+it('Material invalidates bind-group cache keys when DynamicTexture generation changes', async () => {
+  const webglDevice = await getWebGLTestDevice();
+  const materialFactory = new MaterialFactory<{}, {materialTexture: DynamicTexture}>(webglDevice, {
+    modules: [dynamicTextureMaterial as ShaderModule]
+  });
+  const dynamicTexture = new DynamicTexture(webglDevice, {
+    width: 1,
+    height: 1,
+    format: 'rgba8unorm',
+    usage: Texture.SAMPLE | Texture.COPY_DST
+  });
+  await dynamicTexture.ready;
+  const material = materialFactory.createMaterial({
+    bindings: {
+      materialTexture: dynamicTexture
+    }
+  });
+
+  material.getBindings();
+  const initialCacheKey = material.getBindGroupCacheKey(3);
+
+  dynamicTexture.resize({width: 2, height: 2});
+  material.getBindings();
+  const resizedCacheKey = material.getBindGroupCacheKey(3);
+
+  expect(
+    Boolean(initialCacheKey !== resizedCacheKey),
+    'resizing DynamicTexture invalidates cache token'
+  ).toBe(true);
+  expect(
+    material.getBindings()['materialTexture'],
+    'resolved bindings use the current DynamicTexture backing texture'
+  ).toBe(dynamicTexture.texture);
+
+  material.destroy();
+  dynamicTexture.destroy();
+  void 0;
+});
+
+it('Material invalidates bind-group cache keys for volatile external texture resolutions', async () => {
+  const webglDevice = await getWebGLTestDevice();
+  const materialFactory = new MaterialFactory<{}, {materialTexture: TextureBindingSource}>(
+    webglDevice,
+    {
+      modules: [dynamicTextureMaterial as ShaderModule]
+    }
+  );
+  const texture = webglDevice.createTexture({width: 1, height: 1});
+  const textureBindingSource = makeVolatileTextureBindingSource(texture);
+  const material = materialFactory.createMaterial({
+    bindings: {
+      materialTexture: textureBindingSource
+    }
+  });
+  const shaderLayout: ShaderLayout = {
+    attributes: [],
+    bindings: [{name: 'materialTexture', type: 'external-texture', group: 3, location: 0}]
+  };
+
+  material.getBindings(shaderLayout);
+  const initialCacheKey = material.getBindGroupCacheKey(3);
+  material.getBindings(shaderLayout);
+  const nextCacheKey = material.getBindGroupCacheKey(3);
+
+  expect(initialCacheKey, 'new external resolution invalidates bind-group key').not.toBe(
+    nextCacheKey
+  );
+  expect(textureBindingSource.resolutionCount, 'material resolves once per bindings request').toBe(
+    2
+  );
+
+  material.destroy();
+  texture.destroy();
+  void 0;
+});
+
+function makeVolatileTextureBindingSource(texture: Texture): TextureBindingSource & {
+  readonly resolutionCount: number;
+} {
+  let generation = 0;
+  let resolutionCount = 0;
+
+  return {
+    id: 'volatile-texture-source',
+    isReady: true,
+    get generation() {
+      return generation;
+    },
+    updateTimestamp: texture.updateTimestamp,
+    get resolutionCount() {
+      return resolutionCount;
+    },
+    resolveTextureBinding() {
+      resolutionCount++;
+      generation++;
+      return texture;
+    }
+  };
+}

@@ -1,0 +1,105 @@
+[
+  "index",
+  {
+    "type": "category",
+    "label": "GPU Graph Layers - deck.gl v10",
+    "items": [
+      {
+        "type": "doc",
+        "id": "deck/gpu-graph-explorer",
+        "label": "GPU graph explorer"
+      }
+    ]
+  },
+  {
+    "type": "category",
+    "label": "GPU compute and workflows",
+    "items": [
+      "experimental/fluid-foundry",
+      "experimental/gpt-2",
+      "experimental/gpu-data-analysis",
+      "experimental/gpu-frustum-culling",
+      "experimental/gpu-graph-explorer",
+      "experimental/gpu-parquet-constellation",
+      "experimental/gpu-scene-graph",
+      "experimental/gpu-sort",
+      "experimental/gpu-trace-scene",
+      "experimental/gpu-trace-viewer",
+      "experimental/lucim-volume-lab",
+      "experimental/scene-playground",
+      "experimental/spectral-caustics",
+      "experimental/text-space-crawl",
+      "experimental/virtual-geometry-canyon",
+      "experimental/volumetric-fire-forge"
+    ]
+  },
+  {
+    "type": "category",
+    "label": "Analytical views and simulations",
+    "items": [
+      "showcase/billion-point-spatial-atlas",
+      "showcase/dof",
+      "showcase/gaussian-splats",
+      "showcase/instancing",
+      "showcase/lightstorm-megacity",
+      "showcase/million-row-crossfilter",
+      "showcase/poisson-lab",
+      "showcase/quantum-state-studio",
+      "showcase/raster-lab",
+      "showcase/spectral-wave-lab",
+      "showcase/tempest-ocean",
+      "showcase/vector-field-lab"
+    ]
+  },
+  {
+    "type": "category",
+    "label": "Arrow integration",
+    "items": [
+      "arrow/arrow-columns",
+      "arrow/arrow-dggs-polygons",
+      "arrow/arrow-filtering",
+      "arrow/arrow-float64-precision",
+      "arrow/arrow-geoarrow",
+      "arrow/arrow-lines",
+      "arrow/arrow-mesh-geometry",
+      "arrow/arrow-particles",
+      "arrow/arrow-points",
+      "arrow/arrow-polygons",
+      "arrow/arrow-temporal-starfield",
+      "arrow/arrow-text-2d",
+      "arrow/arrow-time-columns"
+    ]
+  },
+  {
+    "type": "category",
+    "label": "deck.gl integration",
+    "items": [
+      "deck/arrow-path-layer",
+      "deck/arrow-polygon-layer",
+      "deck/arrow-text-layer",
+      "deck/gpu-culled-trace",
+      "deck/luspatial-taxi"
+    ]
+  },
+  {
+    "type": "category",
+    "label": "Tutorials",
+    "items": [
+      "tutorials/transform"
+    ]
+  },
+  {
+    "type": "category",
+    "label": "Portable computation",
+    "items": [
+      "v10/gpgpu"
+    ]
+  },
+  {
+    "type": "category",
+    "label": "Integration examples",
+    "items": [
+      "api/video-texture"
+    ]
+  }
+]

@@ -1,0 +1,205 @@
+// luma.gl
+// SPDX-License-Identifier: MIT
+// SPDX-FileCopyrightText: Copyright (c) vis.gl contributors
+
+import type {
+  DeviceProps,
+  CanvasContextProps,
+  PresentationContextProps,
+  PresentationContext,
+  VertexArray,
+  VertexArrayProps,
+  BufferProps,
+  ShaderProps,
+  SamplerProps,
+  TextureProps,
+  ExternalTextureProps,
+  FramebufferProps,
+  RenderPipelineProps,
+  RenderBundleEncoderProps,
+  ComputePipeline,
+  ComputePipelineProps,
+  Buffer,
+  CommandEncoder,
+  CommandEncoderProps,
+  TransformFeedbackProps,
+  QuerySetProps,
+  DeviceLostInfo
+} from '@luma.gl/core';
+import {Device, DeviceFeatures} from '@luma.gl/core';
+import type {NullCommandBuffer} from './resources/null-command-buffer';
+
+import {NullDeviceInfo} from './null-device-info';
+import {NullDeviceLimits} from './null-device-features';
+import {NullCanvasContext} from './null-canvas-context';
+import {NullBuffer} from './resources/null-buffer';
+import {NullFramebuffer} from './resources/null-framebuffer';
+import {NullShader} from './resources/null-shader';
+import {NullCommandEncoder} from './resources/null-command-encoder';
+import {NullSampler} from './resources/null-sampler';
+import {NullTexture} from './resources/null-texture';
+import {NullRenderPass} from './resources/null-render-pass';
+import {NullRenderPipeline} from './resources/null-render-pipeline';
+import {NullVertexArray} from './resources/null-vertex-array';
+import {NullTransformFeedback} from './resources/null-transform-feedback';
+import {NullQuerySet} from './resources/null-query-set';
+import {NullFence} from './resources/null-fence';
+
+/** Do-nothing device implementation for testing */
+export class NullDevice extends Device {
+  static isSupported(): boolean {
+    return true;
+  }
+  readonly type = 'null';
+  readonly handle = null;
+
+  readonly preferredColorFormat = 'rgba8unorm';
+  readonly preferredDepthFormat = 'depth24plus';
+
+  features: DeviceFeatures = new DeviceFeatures([], this.props._disabledFeatures);
+  limits: NullDeviceLimits = new NullDeviceLimits();
+  readonly info = NullDeviceInfo;
+
+  readonly canvasContext: NullCanvasContext;
+  override commandEncoder: NullCommandEncoder;
+
+  readonly lost: Promise<DeviceLostInfo>;
+  private _isLost: boolean = false;
+
+  constructor(props: DeviceProps) {
+    super({...props, id: props.id || 'null-device'});
+
+    const canvasContextProps = Device._getCanvasContextProps(props);
+    this.canvasContext = new NullCanvasContext(this, canvasContextProps);
+    this.lost = new Promise(_resolve => {});
+    this.commandEncoder = new NullCommandEncoder(this, {id: 'null-command-encoder'});
+  }
+
+  /**
+   * Destroys the context
+   * @note Marks this test device as unusable even though there is no native context to lose.
+   */
+  destroy(): void {
+    this._isLost = true;
+    this.commandEncoder?.destroy();
+  }
+
+  get isLost(): boolean {
+    return this._isLost;
+  }
+
+  // IMPLEMENTATION OF ABSTRACT DEVICE
+
+  createCanvasContext(props: CanvasContextProps): NullCanvasContext {
+    return new NullCanvasContext(this, props);
+  }
+
+  createPresentationContext(_props?: PresentationContextProps): PresentationContext {
+    throw new Error('PresentationContext is not supported on NullDevice');
+  }
+
+  createBuffer(props: BufferProps | ArrayBuffer | ArrayBufferView): NullBuffer {
+    const newProps = this._normalizeBufferProps(props);
+    return new NullBuffer(this, newProps);
+  }
+
+  getDefaultRenderPass(): NullRenderPass {
+    return new NullRenderPass(this, {});
+  }
+
+  createTexture(props: TextureProps): NullTexture {
+    return new NullTexture(this, props);
+  }
+
+  createExternalTexture(_props: ExternalTextureProps): never {
+    throw new Error('ExternalTexture is not available on NullDevice');
+  }
+
+  createSampler(props: SamplerProps): NullSampler {
+    return new NullSampler(this, props);
+  }
+
+  createShader(props: ShaderProps): NullShader {
+    return new NullShader(this, props);
+  }
+
+  createFramebuffer(props: FramebufferProps): NullFramebuffer {
+    return new NullFramebuffer(this, props);
+  }
+
+  createVertexArray(props: VertexArrayProps): VertexArray {
+    return new NullVertexArray(this, props);
+  }
+
+  createTransformFeedback(props: TransformFeedbackProps): NullTransformFeedback {
+    return new NullTransformFeedback(this, props);
+  }
+
+  createQuerySet(props: QuerySetProps): NullQuerySet {
+    return new NullQuerySet(this, props);
+  }
+
+  override createFence(): NullFence {
+    return new NullFence(this);
+  }
+
+  createRenderPipeline(props: RenderPipelineProps): NullRenderPipeline {
+    return new NullRenderPipeline(this, props);
+  }
+
+  createComputePipeline(_props?: ComputePipelineProps): ComputePipeline {
+    throw new Error('ComputePipeline is not supported on NullDevice');
+  }
+
+  /** @throws Always throws because `NullDevice` does not support render bundles. */
+  createRenderBundleEncoder(_props?: RenderBundleEncoderProps): never {
+    throw new Error('Render bundles are only supported in WebGPU');
+  }
+
+  override createCommandEncoder(props: CommandEncoderProps = {}): NullCommandEncoder {
+    return new NullCommandEncoder(this, props);
+  }
+
+  submit(commandBuffer?: NullCommandBuffer): void {
+    if (!commandBuffer) {
+      commandBuffer = this.commandEncoder.finish();
+      this.commandEncoder.destroy();
+      this.commandEncoder = this.createCommandEncoder({id: `${this.id}-default-command-encoder`});
+    }
+
+    commandBuffer.destroy();
+  }
+
+  override writeBufferViaCommandEncoder(
+    _commandEncoder: CommandEncoder,
+    destinationBuffer: Buffer,
+    data: ArrayBufferLike | ArrayBufferView | SharedArrayBuffer,
+    byteOffset: number = 0
+  ): void {
+    destinationBuffer.write(data, byteOffset);
+  }
+
+  override setParametersWebGL(parameters: any): void {}
+
+  override getParametersWebGL(parameters: any): any {}
+
+  override withParametersWebGL(parameters: any, func: any): any {
+    const {nocatch = true} = parameters;
+    let value: any;
+    if (nocatch) {
+      // Avoid try catch to minimize stack size impact for safe execution paths
+      return func();
+    }
+    // Wrap in a try-catch to ensure that parameters are restored on exceptions
+    try {
+      value = func();
+    } catch {
+      // ignore
+    }
+    return value;
+  }
+
+  override _getDeviceSpecificTextureFormatCapabilities(format: any): any {
+    return format;
+  }
+}

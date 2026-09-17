@@ -1,0 +1,54 @@
+{
+  "name": "@luma.gl/gltf",
+  "version": "9.4.0-alpha.4",
+  "description": "Standards-first glTF rendering, physical materials, animation, and lossless asset interchange",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/visgl/tbd",
+    "directory": "modules/gltf"
+  },
+  "keywords": [
+    "gltf",
+    "glb",
+    "webgpu",
+    "webgl",
+    "pbr",
+    "animation",
+    "3d"
+  ],
+  "types": "dist/index.d.ts",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "src",
+    "dist",
+    "dist.min.js",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build-minified-bundle": "ocular-bundle ./bundle.ts --output=dist/dist.min.js",
+    "build-dev-bundle": "ocular-bundle ./bundle.ts --output=dist/dist.dev.js --env=dev"
+  },
+  "peerDependencies": {
+    "@luma.gl/core": "~9.4.0-alpha.1",
+    "@luma.gl/engine": "~9.4.0-alpha.1",
+    "@luma.gl/shadertools": "~9.4.0-alpha.1"
+  },
+  "dependencies": {
+    "@loaders.gl/core": "~5.0.0-alpha.5",
+    "@loaders.gl/gltf": "~5.0.0-alpha.5",
+    "@loaders.gl/textures": "~5.0.0-alpha.5",
+    "@math.gl/core": "^4.1.0"
+  },
+  "private": true
+}

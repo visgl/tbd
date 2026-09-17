@@ -1,0 +1,26 @@
+{
+  "name": "babel-plugin-inline-webgl-constants",
+  "version": "2.0.0-alpha.1",
+  "description": "Babel plugin for replacing long gl constants with the shorter corresponding numbers",
+  "type": "module",
+  "license": "MIT",
+  "author": "Ib Green",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/visgl/luma.gl"
+  },
+  "keywords": [
+    "babel-plugin",
+    "webgl",
+    "strip gl constants"
+  ],
+  "scripts": {
+    "build": "babel index.js --presets @babel/env --out-file dist/index.cjs"
+  },
+  "main": "dist/index.cjs",
+  "exports": {
+    "import": "./index.js",
+    "require": "./dist/index.cjs"
+  },
+  "private": true
+}

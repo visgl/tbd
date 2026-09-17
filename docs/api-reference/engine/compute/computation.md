@@ -1,0 +1,121 @@
+import {DocumentationBadge, DocumentationBadges} from '@site/src/components/docs/documentation-badges';
+import {EngineDocsTabs} from '@site/src/components/docs/engine-docs-tabs';
+
+# Computation
+
+<EngineDocsTabs group="compute" active="computation" />
+
+<DocumentationBadges>
+  <DocumentationBadge tone="webgpu">WebGPU supported</DocumentationBadge>
+  <DocumentationBadge tone="neutral">WebGL 2 not supported</DocumentationBadge>
+</DocumentationBadges>
+
+`Computation` is the engine-level wrapper around WebGPU compute shaders.
+It plays the same role for compute work that [`Model`](https://luma.gl/docs/api-reference/engine/model) plays for rendering: it assembles shaders, manages shader inputs and bindings, reuses cached pipelines, and dispatches work through a [`ComputePass`](https://luma.gl/docs/api-reference/core/resources/compute-pass).
+
+## Usage
+
+```typescript
+import {Computation} from '@luma.gl/engine';
+
+const computation = await Computation.createAsync(device, {
+  source: COMPUTE_SHADER_SOURCE,
+  bindings: {
+    inputBuffer,
+    outputBuffer
+  }
+});
+
+computation.predraw(device.commandEncoder);
+const computePass = device.beginComputePass();
+computation.dispatch(computePass, 64, 1, 1);
+computePass.end();
+```
+
+## Types
+
+### `ComputationProps`
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `source?` | `string` | WGSL source code for the compute shader. |
+| `modules?` | `ShaderModule[]` | Shader modules to assemble into the shader. |
+| `defines?` | `Record<string, boolean>` | Shader module defines passed to the assembler. |
+| `plugins?` | `ShaderPlugin[]` | Reusable shader assembly plugins resolved for WGSL compute assembly. Plugins with `vertexInputs` are not supported. |
+| `shaderInputs?` | `ShaderInputs` | Pre-created shader input manager. |
+| `bindings?` | `Record<string, Binding>` | Bound textures, samplers, storage buffers, or uniform buffers. |
+| `pipelineFactory?` | `PipelineFactory` | Factory from `@luma.gl/core` used to create cached compute pipelines. |
+| `shaderFactory?` | `ShaderFactory` | Factory from `@luma.gl/core` used to create cached shader resources. |
+| `shaderAssembler?` | `ShaderAssembler` | WGSL shader assembler to use. |
+| `debugShaders?` | `'never' \| 'errors' \| 'warnings' \| 'always'` | Debug shader output policy. |
+
+`ComputationProps` also includes the standard `ComputePipelineProps` supported by `device.createComputePipeline(...)`.
+
+## Properties
+
+### `device`, `id`
+
+Device and application-provided identifier.
+
+### `pipeline: ComputePipeline`
+
+Current compute pipeline.
+
+### `shader`
+
+Compiled compute shader resource.
+
+### `source`
+
+Assembled WGSL source.
+
+### `shaderInputs`
+
+Current `ShaderInputs` instance.
+
+## Methods
+
+### `constructor(device: Device, props: ComputationProps)`
+
+Creates a computation wrapper for one WebGPU device. Throws on non-WebGPU devices.
+
+### `Computation.createAsync(device: Device, props: ComputationProps): Promise<Computation>`
+
+Creates the same computation through the device's asynchronous compute-pipeline path. Use this in
+an application loading phase, especially when several computations can be started together with
+`Promise.all()`. The returned computation is fully ready to dispatch. `GPUCommandGraph.compileAsync()`
+uses this behavior automatically for computations constructed by graph nodes.
+
+### `destroy(): void`
+
+Releases the cached pipeline and shader and destroys the internal uniform store.
+
+### `predraw(commandEncoder: CommandEncoder): void`
+
+Updates uniform buffers from the current `ShaderInputs` state, encoding any managed uploads onto the supplied command encoder before the compute pass begins.
+
+### `dispatch(computePass: ComputePass, x: number, y?: number, z?: number): void`
+
+Binds the current pipeline and bindings and dispatches compute workgroups.
+
+### `setShaderInputs(shaderInputs: ShaderInputs): void`
+
+Replaces the active `ShaderInputs` instance and rebuilds the managed uniform-buffer bindings.
+
+### `setShaderModuleProps(props: Record<string, any>): void`
+
+Updates module props through the shader assembler's generated module-uniform helper.
+
+### `updateShaderInputs(commandEncoder?: CommandEncoder): void`
+
+Flushes current `ShaderInputs` values into the internal uniform store. On WebGPU, pass the encoder that will own the subsequent compute pass when upload ordering matters.
+
+### `setBindings(bindings: Record<string, Binding>): void`
+
+Sets the resource bindings used for subsequent dispatches.
+
+## Remarks
+
+- `Computation` is compute-only and does not expose draw-style geometry or render-pass APIs.
+- For shader-module-based resource management, `Computation` follows the same `ShaderInputs` pattern as [`Model`](https://luma.gl/docs/api-reference/engine/model).
+- `Computation` uses [`PipelineFactory`](https://luma.gl/docs/api-reference/core/pipeline-factory) and [`ShaderFactory`](https://luma.gl/docs/api-reference/core/shader-factory) from `@luma.gl/core` unless you provide custom factory instances.
