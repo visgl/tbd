@@ -137,7 +137,7 @@ export const EXPERIMENTAL_DOCS_TAB_GROUPS: readonly DocsTabGroup<ExperimentalDoc
     label: 'GPU Project',
     tabs: [
       {id: 'gpu-project', label: 'Projection', href: '/docs/api-reference/experimental/gpu-project'},
-      {id: 'geospatial', label: 'Geospatial Kernels', href: 'https://luma.gl/docs/api-reference/experimental/geospatial'},
+      {id: 'geospatial', label: 'Geospatial Kernels', href: '/docs/api-reference/experimental/geospatial'},
       {id: 'gpu-dggs', label: 'DGGS', href: '/docs/api-reference/experimental/gpu-dggs'},
       {id: 'gpu-h3', label: 'H3', href: '/docs/api-reference/experimental/gpu-h3'},
       {id: 'gpu-a5', label: 'A5', href: '/docs/api-reference/experimental/gpu-a5'}
@@ -232,7 +232,7 @@ export const EXPERIMENTAL_DOCS_TAB_GROUPS: readonly DocsTabGroup<ExperimentalDoc
     tabs: [
       {id: 'mls-mpm-fluid-simulation', label: 'MLS-MPM Fluid', href: 'https://luma.gl/docs/api-reference/experimental/mls-mpm-fluid-simulation'},
       {id: 'spectral-ocean-simulation', label: 'Spectral Ocean', href: 'https://luma.gl/docs/api-reference/experimental/spectral-ocean-simulation'},
-      {id: 'volumetric-fire-simulation', label: 'Volumetric Fire', href: 'https://luma.gl/docs/api-reference/experimental/volumetric-fire-simulation'}
+      {id: 'volumetric-fire-simulation', label: 'Volumetric Fire', href: '/docs/api-reference/experimental/volumetric-fire-simulation'}
     ]
   }
 ];

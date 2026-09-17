@@ -1,6 +1,7 @@
 [
   "README",
   "getting-started",
+  "capabilities/gpu-data-compute",
   {
     "type": "category",
     "label": "GPU graph and operations",
@@ -172,7 +173,9 @@
       "api-reference/experimental/gpu-sql",
       "api-reference/experimental/gpu-trace",
       "api-reference/experimental/gpu-trace-algorithms",
-      "api-reference/experimental/lucim"
+      "api-reference/experimental/lucim",
+      "api-reference/experimental/geospatial",
+      "api-reference/experimental/volumetric-fire-simulation"
     ]
   },
   {
@@ -205,7 +208,8 @@
       "api-guide/gpu/batch-semantics",
       "api-guide/gpu/gpu-data-processing",
       "api-guide/gpu/gpu-tables",
-      "api-guide/gpu/tabular-data-in-wgsl"
+      "api-guide/gpu/tabular-data-in-wgsl",
+      "api-guide/gpu/gpgpu"
     ]
   }
 ]

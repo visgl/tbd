@@ -55,6 +55,10 @@
       "sha256": "1ec0e4e1638cea27ad0d63894f73e738a39919f1e44497976cf01829a9d096a1"
     },
     {
+      "path": "docs/api-guide/gpu/gpgpu.md",
+      "sha256": "85ac20d5e68e77875192b674e6f00a178a2f7e02d3f981f9f1e8e25b4f4b5c9a"
+    },
+    {
       "path": "docs/api-guide/gpu/gpu-data-processing.md",
       "sha256": "c9d4b59ad17414e0bed8ea2f7d99dcd6123c905d30c16f6f9c8135c5bbd3d80d"
     },
@@ -109,6 +113,10 @@
     {
       "path": "docs/api-reference/engine/compute/texture-transform.md",
       "sha256": "037cf8e2766405a3545c1bf1a3f0533c79f9c25bb46091a268a0ad737301adaf"
+    },
+    {
+      "path": "docs/api-reference/experimental/geospatial.md",
+      "sha256": "3e48daf0fb293ba3147546b7f7dbef331a22fd5c7b5b8479d32b316f40cbe4f1"
     },
     {
       "path": "docs/api-reference/experimental/gpu-a5.md",
@@ -623,6 +631,10 @@
       "sha256": "dc58b1a2922e803402cd86d228a9dc3e0eae82827b2e65c638d33a2fd5a947a8"
     },
     {
+      "path": "docs/api-reference/experimental/volumetric-fire-simulation.md",
+      "sha256": "6f2d5025b8d99449bec92dbfa4f21219702c426daeee17202fbe0ae9bacea3b9"
+    },
+    {
       "path": "docs/api-reference/gpgpu/README.md",
       "sha256": "26a3cc0cc5ba026253667fa69e64877228e559d4b4602817e7e2a4fcccd768d1"
     },
@@ -669,6 +681,10 @@
     {
       "path": "docs/api-reference/gpgpu/operations.md",
       "sha256": "a2d7b44766f6834611e0640c4c00b2dbf86de0b4845b377e5728123e8725712a"
+    },
+    {
+      "path": "docs/capabilities/gpu-data-compute.mdx",
+      "sha256": "f2d810c8560a8cdfb41e11a3d53b29738872242e959599675f03bd81ab0c7b41"
     },
     {
       "path": "examples/api/animation/mobile-support.ts",
